@@ -302,7 +302,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview()
 @Composable
 fun PreviewHomeScreen() {
     MovieHubTheme {
