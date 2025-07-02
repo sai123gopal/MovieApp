@@ -42,6 +42,7 @@
     <color name="white">#FFFFFFFF</color>
     
     <!-- Additional colors -->
+    <color name="colorBackground">@color/md_theme_light_background</color>
     <color name="colorPrimary">@color/md_theme_light_primary</color>
     <color name="colorPrimaryVariant">@color/md_theme_light_primaryContainer</color>
     <color name="colorOnPrimary">@color/md_theme_light_onPrimary</color>
@@ -50,7 +51,6 @@
     <color name="colorOnSecondary">@color/md_theme_light_onSecondary</color>
     <color name="colorError">@color/md_theme_light_error</color>
     <color name="colorOnError">@color/md_theme_light_onError</color>
-    <color name="colorBackground">@color/md_theme_light_background</color>
     <color name="colorOnBackground">@color/md_theme_light_onBackground</color>
     <color name="colorSurface">@color/md_theme_light_surface</color>
     <color name="colorOnSurface">@color/md_theme_light_onSurface</color>

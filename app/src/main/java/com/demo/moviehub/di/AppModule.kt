@@ -1,19 +1,20 @@
 package com.demo.moviehub.di
 
+import com.demo.moviehub.data.repository.MovieRepository
+import com.demo.moviehub.data.repository.MovieRepositoryImpl
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
-    // Add your application-wide dependencies here
+abstract class AppModule {
     
-    @Provides
+    @Binds
     @Singleton
-    fun provideSomeDependency(): String {
-        return "Hello from Hilt!"
-    }
+    abstract fun bindMovieRepository(
+        movieRepositoryImpl: MovieRepositoryImpl
+    ): MovieRepository
 }
