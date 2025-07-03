@@ -1,9 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
 }
+
+val localProperties = Properties().apply {
+    load(rootProject.file("local.properties").inputStream())
+}
+
+val tmdbApiKey = localProperties.getProperty("TMDB_API_KEY")
+    ?: throw GradleException("TMDB_API_KEY not found in local.properties. Please add it to your local.properties file.")
+
 
 android {
     namespace = "com.demo.moviehub"
@@ -17,6 +27,10 @@ android {
         versionName = "1.0"
         
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Add API key to BuildConfig
+        buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
+        
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -40,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"

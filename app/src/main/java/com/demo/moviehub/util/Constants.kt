@@ -3,14 +3,11 @@ package com.demo.moviehub.util
 object Constants {
     // TMDB API Configuration
     const val BASE_URL = "https://api.themoviedb.org/3/"
-    const val API_KEY = "" // Replace with your actual API key
-    const val BASE_IMAGE_URL = "https://image.tmdb.org/t/p/"
     
-    // Image sizes
-    const val IMAGE_SIZE_500 = "w500"
-    const val IMAGE_SIZE_ORIGINAL = "original"
+    // API Key is provided via BuildConfig
+    val API_KEY: String = com.demo.moviehub.BuildConfig.TMDB_API_KEY
     
-    // Timeouts
+    // Network timeouts
     const val CONNECT_TIMEOUT = 30L // seconds
     const val READ_TIMEOUT = 30L // seconds
     
@@ -22,5 +19,6 @@ object Constants {
         const val MOVIE_NOW_PLAYING = "movie/now_playing"
         const val MOVIE_DETAILS = "movie/{movie_id}"
         const val MOVIE_CREDITS = "movie/{movie_id}/credits"
+        const val TRENDING_MOVIES = "trending/movie/day"
     }
 }
