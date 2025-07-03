@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -41,6 +42,10 @@ import com.demo.moviehub.ui.screens.favorites.FavoritesScreen
 import com.demo.moviehub.ui.screens.home.HomeScreen
 import com.demo.moviehub.ui.theme.MovieHubTheme
 import com.demo.moviehub.ui.theme.YellowRating
+import com.demo.moviehub.util.Constants.ROUTE_FAVORITES
+import com.demo.moviehub.util.Constants.ROUTE_HOME
+import com.demo.moviehub.util.Constants.ROUTE_MOVIE_DETAILS
+import com.demo.moviehub.util.Constants.ROUTE_SETTINGS
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -77,7 +82,6 @@ fun MainScreen() {
             if (showBottomBar) {
                 BottomNavigationBar(navController, currentRoute)
             } else {
-                // Return an empty composable when bottom bar is not needed
                 Box {}
             }
         }
@@ -201,11 +205,7 @@ fun SettingsScreen() {
     }
 }
 
-// Screen routes as constants to avoid initialization issues
-private const val ROUTE_HOME = "home"
-private const val ROUTE_FAVORITES = "favorites"
-private const val ROUTE_SETTINGS = "settings"
-private const val ROUTE_MOVIE_DETAILS = "movie/{movieId}"
+
 
 sealed class Screen(
     val route: String,
@@ -213,25 +213,25 @@ sealed class Screen(
     val icon: ImageVector,
     val isBottomNavItem: Boolean = true
 ) {
-    object Home : Screen(
+    data object Home : Screen(
         route = ROUTE_HOME,
         title = "Home",
         icon = Icons.Default.Home
     )
     
-    object Favorites : Screen(
+    data object Favorites : Screen(
         route = ROUTE_FAVORITES,
         title = "Favorites",
         icon = Icons.Default.Favorite
     )
     
-    object Settings : Screen(
+    data object Settings : Screen(
         route = ROUTE_SETTINGS,
         title = "Settings",
         icon = Icons.Default.Settings
     )
     
-    object MovieDetails : Screen(
+    data object MovieDetails : Screen(
         route = ROUTE_MOVIE_DETAILS,
         title = "Movie Details",
         icon = Icons.Default.FavoriteBorder,

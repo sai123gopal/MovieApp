@@ -80,7 +80,6 @@ class MovieDetailsViewModel @Inject constructor(
                 )
                 favoriteRepository.addToFavorites(movie)
             }
-            // Refresh the favorite status
             _isFavorite.value = favoriteRepository.isFavorite(id)
         }
     }

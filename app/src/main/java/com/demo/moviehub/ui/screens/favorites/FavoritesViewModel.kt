@@ -57,7 +57,6 @@ class FavoritesViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 favoriteRepository.removeFromFavorites(movie.id)
-                // No need to manually refresh as the Flow will emit the updated list
             } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(

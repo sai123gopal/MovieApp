@@ -29,14 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +45,7 @@ import coil.request.ImageRequest
 import com.demo.moviehub.ui.theme.YellowRating
 import com.demo.moviehub.util.ImageUrlBuilder
 import com.demo.moviehub.util.Result
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,7 +115,6 @@ fun MovieDetailsScreen(
                             .padding(padding)
                     ) {
                         item {
-                            // Backdrop Image
                             val imagePath = movie.backdropPath ?: movie.posterPath ?: ""
                             val imageUrl = if (imagePath.isNotBlank()) {
                                 ImageUrlBuilder.buildBackdropUrl(imagePath)
@@ -194,7 +188,7 @@ fun MovieDetailsScreen(
                                         .fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    movie.genres?.take(3)?.forEach { genre ->
+                                    movie.genres.take(3).forEach { genre ->
                                         Text(
                                             text = genre.name,
                                             style = MaterialTheme.typography.bodySmall,
@@ -208,7 +202,6 @@ fun MovieDetailsScreen(
                                     }
                                 }
 
-                                // Overview
                                 Text(
                                     text = "Overview",
                                     style = MaterialTheme.typography.titleMedium,
@@ -221,7 +214,6 @@ fun MovieDetailsScreen(
                                     lineHeight = 20.sp
                                 )
 
-                                // Cast Section
                                 if (!movie.credits?.cast.isNullOrEmpty()) {
                                     Text(
                                         text = "Cast",

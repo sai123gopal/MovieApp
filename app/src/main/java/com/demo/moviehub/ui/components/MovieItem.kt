@@ -62,7 +62,6 @@ fun MovieItem(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Movie Poster with Rating Badge and Favorite Button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -88,7 +87,10 @@ fun MovieItem(
                         .clip(RoundedCornerShape(12.dp))
                 )
 
-                Box (Modifier.align(Alignment.TopEnd).padding(8.dp)){
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)) {
                     if (onFavoriteClick != null) {
                         IconButton(
                             onClick = { onFavoriteClick(movie) },
@@ -110,7 +112,6 @@ fun MovieItem(
             }
         }
 
-        // Movie Title and Release Year
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -133,7 +134,6 @@ fun MovieItem(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                // Rating Badge
                 if (movie.voteAverage > 0) {
                     Box(
                         modifier = Modifier
@@ -164,8 +164,6 @@ fun MovieItem(
                     }
                 }
             }
-            // Release Year
-
         }
     }
 }

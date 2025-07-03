@@ -1,6 +1,7 @@
 package com.demo.moviehub.di
 
 import android.content.Context
+import com.demo.moviehub.BuildConfig
 import com.demo.moviehub.data.network.TmdbApiService
 import com.demo.moviehub.network.ConnectivityObserver
 import com.demo.moviehub.network.NetworkConnectivityObserver
@@ -24,10 +25,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-    
-    // Enable debug logging in development
-    private const val ENABLE_DEBUG_LOGGING = true
-    
+
     @Provides
     @Singleton
     fun provideGson(): Gson = GsonBuilder()
@@ -63,8 +61,7 @@ object NetworkModule {
             writeTimeout(Constants.READ_TIMEOUT, TimeUnit.SECONDS)
             addInterceptor(apiKeyInterceptor)
             
-            // Add logging interceptor in debug mode
-            if (ENABLE_DEBUG_LOGGING) {
+            if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY
                 })
