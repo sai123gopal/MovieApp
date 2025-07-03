@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,10 +17,17 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,12 +41,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.demo.moviehub.R
+import com.demo.moviehub.data.model.Movie
 import com.demo.moviehub.ui.components.MovieItem
 import com.demo.moviehub.ui.theme.YellowRating
+import com.demo.moviehub.util.ImageUrlBuilder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,19 +162,24 @@ fun HomeScreen(
                     )
                 )
             }
-            
+
+            Text(
+                text = "Trending",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
             // Trending Movies Horizontal List
             if (uiState.isLoading && uiState.trendingMovies.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp),
+                        .height(220.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        color = YellowRating,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    CircularProgressIndicator()
                 }
             } else if (uiState.error != null) {
                 Box(
@@ -170,30 +195,22 @@ fun HomeScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-            } else {
+            } else if (uiState.trendingMovies.isNotEmpty()) {
                 LazyRow(
-                    modifier = Modifier.padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.trendingMovies) { movie ->
                         MovieItem(
                             movie = movie,
+                            isFavorite = uiState.favoriteMovieIds.contains(movie.id),
                             onItemClick = { onMovieClick(movie.id) },
-                            modifier = Modifier.width(150.dp)
+                            onFavoriteClick = { viewModel.toggleFavorite(movie) }
                         )
                     }
                 }
             }
-            
-            // Trending Section
-            Text(
-                text = "Trending",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            
+
             // Popular Movies Section
             Text(
                 text = "Popular Movies",
@@ -208,13 +225,10 @@ fun HomeScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp),
+                        .height(220.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        color = YellowRating,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    CircularProgressIndicator()
                 }
             } else if (uiState.error != null) {
                 Box(
@@ -238,8 +252,10 @@ fun HomeScreen(
                     items(uiState.popularMovies) { movie ->
                         MovieItem(
                             movie = movie,
+                            modifier = Modifier.width(150.dp),
+                            isFavorite = uiState.favoriteMovieIds.contains(movie.id),
                             onItemClick = { onMovieClick(movie.id) },
-                            modifier = Modifier.width(150.dp)
+                            onFavoriteClick = { viewModel.toggleFavorite(movie) }
                         )
                     }
                 }

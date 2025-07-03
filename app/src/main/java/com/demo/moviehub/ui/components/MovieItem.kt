@@ -7,12 +7,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,18 +29,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
+import coil.compose.AsyncImagePainter.State.Empty.painter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.demo.moviehub.R
 import com.demo.moviehub.data.model.Movie
+import com.demo.moviehub.data.repository.FavoriteRepository
 import com.demo.moviehub.ui.theme.YellowRating
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import com.demo.moviehub.util.ImageUrlBuilder
 
 @Composable
 fun MovieItem(
     movie: Movie,
     modifier: Modifier = Modifier,
-    onItemClick: (Int) -> Unit = {}
+    isFavorite: Boolean = false,
+    onItemClick: (Int) -> Unit = {},
+    onFavoriteClick: ((Movie) -> Unit)? = null
 ) {
     Card(
         modifier = modifier
@@ -50,11 +62,11 @@ fun MovieItem(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Movie Poster with Rating Badge
+            // Movie Poster with Rating Badge and Favorite Button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .aspectRatio(2f / 3f)
             ) {
                 val imageUrl = ImageUrlBuilder.buildPosterUrl(movie)
                 val painter = rememberAsyncImagePainter(
@@ -66,7 +78,7 @@ fun MovieItem(
                     error = painterResource(id = R.drawable.ic_launcher_foreground),
                     placeholder = painterResource(id = R.drawable.ic_launcher_foreground)
                 )
-                
+
                 Image(
                     painter = painter,
                     contentDescription = "${movie.title} poster",
@@ -75,18 +87,61 @@ fun MovieItem(
                         .fillMaxSize()
                         .clip(RoundedCornerShape(12.dp))
                 )
-                
+
+                Box (Modifier.align(Alignment.TopEnd).padding(8.dp)){
+                    if (onFavoriteClick != null) {
+                        IconButton(
+                            onClick = { onFavoriteClick(movie) },
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    shape = CircleShape
+                                )
+                                .size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Movie Title and Release Year
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+        ) {
+            Text(
+                text = movie.title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row {
+                if (movie.releaseDate.isNotEmpty()) {
+                    Text(
+                        text = movie.releaseDate.take(4), // Extract year from YYYY-MM-DD
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
                 // Rating Badge
                 if (movie.voteAverage > 0) {
                     Box(
                         modifier = Modifier
-                            .padding(8.dp)
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
                                 shape = CircleShape
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .align(Alignment.TopEnd)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -108,48 +163,9 @@ fun MovieItem(
                         }
                     }
                 }
-                
-                // Show loading indicator while image is loading
-                if (painter.state is AsyncImagePainter.State.Loading) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // You can replace this with a proper loading indicator
-                        Text(
-                            text = "Loading...",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
             }
+            // Release Year
 
-            // Movie Title and Release Year
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
-            ) {
-                Text(
-                    text = movie.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                // Release Year
-                if (movie.releaseDate.isNotEmpty()) {
-                    Text(
-                        text = movie.releaseDate.take(4), // Extract year from YYYY-MM-DD
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-            }
         }
     }
 }
