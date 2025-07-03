@@ -44,7 +44,7 @@ fun CastItem(
         Spacer(modifier = Modifier.height(4.dp))
         
         Text(
-            text = cast.name ?: "",
+            text = cast.name,
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

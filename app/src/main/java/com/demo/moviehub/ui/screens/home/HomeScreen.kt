@@ -39,16 +39,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.moviehub.ui.components.MovieItem
 import com.demo.moviehub.ui.theme.YellowRating
+import com.demo.moviehub.util.NetworkMonitor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onMovieClick: (Int) -> Unit = {},
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    networkMonitor : NetworkMonitor
 ) {
     var selectedFilter by remember { mutableIntStateOf(0) }
     val uiState by viewModel.uiState.collectAsState()
-    
+    val isConnected by networkMonitor.isConnected.collectAsState(initial = true)
+
     val currentDate = remember { java.time.LocalDate.now().toString() }
     val thirtyDaysAgo = remember { java.time.LocalDate.now().minusDays(30).toString() }
     val weekAgo = remember { java.time.LocalDate.now().minusWeeks(1).toString() }
@@ -165,7 +168,7 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Error loading trending movies: ${uiState.error}",
+                        text = if(isConnected.not()) "No internet connection" else "Error loading trending movies: ${uiState.error}",
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center
                     )
@@ -212,7 +215,7 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Error loading popular movies: ${uiState.error}",
+                        text = if(isConnected.not()) "No internet connection" else "Error loading popular movies: ${uiState.error}",
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center
                     )

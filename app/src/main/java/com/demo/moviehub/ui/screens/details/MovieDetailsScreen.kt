@@ -46,9 +46,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.demo.moviehub.data.model.Movie
+import com.demo.moviehub.data.model.MovieDetails
 import com.demo.moviehub.ui.components.CastItem
 import com.demo.moviehub.ui.theme.YellowRating
 import com.demo.moviehub.util.ImageUrlBuilder
+import com.demo.moviehub.util.NetworkMonitor
 import com.demo.moviehub.util.Result
 import kotlinx.coroutines.launch
 
@@ -57,10 +60,12 @@ import kotlinx.coroutines.launch
 fun MovieDetailsScreen(
     navController: NavHostController,
     viewModel: MovieDetailsViewModel,
+    networkMonitor : NetworkMonitor,
     modifier: Modifier = Modifier
 ) {
     val onBackClick: () -> Unit = { navController.popBackStack() }
     val movieDetailsState by viewModel.movieDetails.collectAsState()
+    val isConnected by networkMonitor.isConnected.collectAsState(initial = true)
 
     Scaffold(
         topBar = {
@@ -77,7 +82,7 @@ fun MovieDetailsScreen(
                 actions = {
                     val isFavorite by viewModel.isFavorite.collectAsState()
                     val coroutineScope = rememberCoroutineScope()
-                    
+
                     IconButton(
                         onClick = {
                             coroutineScope.launch {
@@ -114,147 +119,151 @@ fun MovieDetailsScreen(
             is Result.Success -> {
                 state.data.let { movie ->
                     viewModel.movieDetailsData = movie
-                    LazyColumn(
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(padding)
-                    ) {
-                        item {
-                            val imagePath = movie.backdropPath ?: movie.posterPath ?: ""
-                            val imageUrl = if (imagePath.isNotBlank()) {
-                                ImageUrlBuilder.buildBackdropUrl(imagePath)
-                            } else {
-                                ImageUrlBuilder.DEFAULT_BACKDROP_URL
-                            }
-                            Image(
-                                painter = rememberAsyncImagePainter(
-                                    ImageRequest.Builder(LocalContext.current)
-                                        .data(imageUrl)
-                                        .crossfade(true)
-                                        .build()
-                                ),
-                                contentDescription = "${movie.title} backdrop",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                            )
-                        }
-
-                        item {
-                            // Movie Info
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                // Title and Rating
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = movie.title,
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    
-                                    // Rating
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Rating",
-                                            tint = YellowRating,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "${movie.voteAverage}/10",
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                }
-
-                                // Release Year and Runtime
-                                Text(
-                                    text = "${movie.releaseDate.take(4)} • ${movie.runtime} min",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-
-                                // Genres
-                                Row(
-                                    modifier = Modifier
-                                        .padding(vertical = 8.dp)
-                                        .fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    movie.genres.take(3).forEach { genre ->
-                                        Text(
-                                            text = genre.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier
-                                                .padding(end = 8.dp)
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        )
-                                    }
-                                }
-
-                                Text(
-                                    text = "Overview",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                                Text(
-                                    text = movie.overview ?: "No overview available.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    lineHeight = 20.sp
-                                )
-
-                                if (!movie.credits?.cast.isNullOrEmpty()) {
-                                    Text(
-                                        text = "Cast",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
-                                    
-                                    // Horizontal scrollable cast list
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
-                                    ) {
-                                        items(movie.credits!!.cast.take(10)) { castMember ->
-                                            CastItem(
-                                                cast = castMember,
-                                                modifier = Modifier.padding(horizontal = 4.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Body(modifier,padding,movie)
                 }
             }
             is Result.Error -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding),
+                        .padding(all = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.message,
+                        text = if(isConnected.not()) "No internet connection" else state.message,
                         color = MaterialTheme.colorScheme.error
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Body(modifier: Modifier,padding: PaddingValues,movie: MovieDetails){
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(padding)
+    ) {
+        item {
+            val imagePath = movie.backdropPath ?: movie.posterPath ?: ""
+            val imageUrl = if (imagePath.isNotBlank()) {
+                ImageUrlBuilder.buildBackdropUrl(imagePath)
+            } else {
+                ImageUrlBuilder.DEFAULT_BACKDROP_URL
+            }
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build()
+                ),
+                contentDescription = "${movie.title} backdrop",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+            )
+        }
+
+        item {
+            // Movie Info
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // Title and Rating
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = movie.title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Rating
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Rating",
+                            tint = YellowRating,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${movie.voteAverage}/10",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                // Release Year and Runtime
+                Text(
+                    text = "${movie.releaseDate.take(4)} • ${movie.runtime} min",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                // Genres
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    movie.genres.take(3).forEach { genre ->
+                        Text(
+                            text = genre.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Overview",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                Text(
+                    text = movie.overview,
+                    style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = 20.sp
+                )
+
+                if (!movie.credits?.cast.isNullOrEmpty()) {
+                    Text(
+                        text = "Cast",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
+                    ) {
+                        items(movie.credits!!.cast.take(10)) { castMember ->
+                            CastItem(
+                                cast = castMember,
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

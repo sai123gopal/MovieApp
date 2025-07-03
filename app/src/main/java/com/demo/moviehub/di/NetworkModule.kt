@@ -1,17 +1,13 @@
 package com.demo.moviehub.di
 
-import android.content.Context
 import com.demo.moviehub.BuildConfig
 import com.demo.moviehub.data.network.TmdbApiService
-import com.demo.moviehub.network.ConnectivityObserver
-import com.demo.moviehub.network.NetworkConnectivityObserver
 import com.demo.moviehub.util.Constants
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -84,12 +80,5 @@ object NetworkModule {
     fun provideTmdbApiService(retrofit: Retrofit): TmdbApiService {
         return retrofit.create(TmdbApiService::class.java)
     }
-    
-    @Provides
-    @Singleton
-    fun provideConnectivityObserver(
-        @ApplicationContext context: Context
-    ): ConnectivityObserver {
-        return NetworkConnectivityObserver(context)
-    }
+
 }

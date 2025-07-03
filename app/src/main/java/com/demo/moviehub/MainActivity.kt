@@ -1,10 +1,13 @@
 package com.demo.moviehub
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,13 +25,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,6 +47,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.demo.moviehub.ui.components.NetworkError
 import com.demo.moviehub.ui.screens.details.MovieDetailsScreen
 import com.demo.moviehub.ui.screens.details.MovieDetailsViewModel
 import com.demo.moviehub.ui.screens.favorites.FavoritesScreen
@@ -46,7 +58,10 @@ import com.demo.moviehub.util.Constants.ROUTE_FAVORITES
 import com.demo.moviehub.util.Constants.ROUTE_HOME
 import com.demo.moviehub.util.Constants.ROUTE_MOVIE_DETAILS
 import com.demo.moviehub.util.Constants.ROUTE_SETTINGS
+import com.demo.moviehub.util.NetworkMonitor
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -55,11 +70,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MovieHubTheme {
+                val networkMonitor = remember { NetworkMonitor(this) }
+                
+                LaunchedEffect(Unit) {
+                    networkMonitor.startMonitoring()
+                }
+                
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    MainScreen(networkMonitor = networkMonitor)
                 }
             }
         }
@@ -67,11 +88,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    networkMonitor: NetworkMonitor
+) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: ""
+    val isConnected by networkMonitor.isConnected.collectAsState(initial = true)
     
     Scaffold(
+        topBar = {
+            NetworkError(isVisible = !isConnected)
+        },
         bottomBar = {
             val showBottomBar = when (currentRoute) {
                 ROUTE_HOME -> true
@@ -95,7 +122,7 @@ fun MainScreen() {
                 HomeScreen(
                     onMovieClick = { movieId ->
                         navController.navigate(Screen.MovieDetails.createRoute(movieId))
-                    }
+                    }, networkMonitor = networkMonitor
                 ) 
             }
             composable(Screen.Favorites.route) { 
@@ -126,6 +153,7 @@ fun MainScreen() {
                 MovieDetailsScreen(
                     navController = navController,
                     viewModel = viewModel,
+                    networkMonitor,
                     modifier = Modifier.fillMaxSize()
                 )
             }

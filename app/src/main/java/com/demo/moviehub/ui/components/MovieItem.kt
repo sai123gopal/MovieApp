@@ -127,7 +127,7 @@ fun MovieItem(
             Row {
                 if (movie.releaseDate.isNotEmpty()) {
                     Text(
-                        text = movie.releaseDate.take(4), // Extract year from YYYY-MM-DD
+                        text = movie.releaseDate.take(4),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 2.dp)
