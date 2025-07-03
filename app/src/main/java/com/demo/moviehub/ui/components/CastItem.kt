@@ -14,7 +14,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.demo.moviehub.data.model.CastMember
-import com.demo.moviehub.data.model.Credits
 import com.demo.moviehub.util.ImageUrlBuilder
 
 @Composable
@@ -26,7 +25,6 @@ fun CastItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.width(80.dp)
     ) {
-        // Cast Profile Image
         Box(
             modifier = Modifier
                 .size(70.dp)
@@ -45,7 +43,6 @@ fun CastItem(
         
         Spacer(modifier = Modifier.height(4.dp))
         
-        // Cast Name
         Text(
             text = cast.name ?: "",
             style = MaterialTheme.typography.labelSmall,
@@ -55,7 +52,6 @@ fun CastItem(
             modifier = Modifier.fillMaxWidth()
         )
         
-        // Character Name
         if (cast.character.isNotEmpty()) {
             Text(
                 text = cast.character,
