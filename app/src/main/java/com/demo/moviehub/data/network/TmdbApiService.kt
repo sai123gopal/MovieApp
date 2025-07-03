@@ -4,6 +4,7 @@ import com.demo.moviehub.data.model.MovieResponse
 import com.demo.moviehub.util.Constants.API_KEY
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface TmdbApiService {
@@ -14,8 +15,9 @@ interface TmdbApiService {
         @Query("language") language: String = "en-US"
     ): Response<MovieResponse>
     
-    @GET("trending/movie/day")
+    @GET("trending/movie/{time_window}")
     suspend fun getTrendingMovies(
+        @Path("time_window") timeWindow: String = "day",
         @Query("api_key") apiKey: String = API_KEY,
         @Query("page") page: Int = 1,
         @Query("language") language: String = "en-US"

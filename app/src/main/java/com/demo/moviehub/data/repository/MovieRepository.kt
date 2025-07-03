@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 interface MovieRepository {
     suspend fun getPopularMovies(page: Int): Result<MovieResponse>
-    suspend fun getTrendingMovies(page: Int): Result<MovieResponse>
+    suspend fun getTrendingMovies(timeWindow: String = "day", page: Int): Result<MovieResponse>
 }
 
 class MovieRepositoryImpl @Inject constructor(
@@ -27,11 +27,18 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTrendingMovies(page: Int): Result<MovieResponse> {
+    override suspend fun getTrendingMovies(
+        timeWindow: String,
+        page: Int
+    ): Result<MovieResponse> {
         return try {
-            val response = apiService.getTrendingMovies(page = page)
+            val response = apiService.getTrendingMovies(
+                timeWindow = timeWindow,
+                page = page
+            )
             if (response.isSuccessful) {
-                response.body()?.let { Result.success(it) } ?: Result.failure(Exception("Empty response"))
+                response.body()?.let { Result.success(it) } 
+                    ?: Result.failure(Exception("Empty response"))
             } else {
                 Result.failure(Exception(response.message()))
             }

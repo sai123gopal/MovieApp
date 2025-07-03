@@ -4,14 +4,28 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.demo.moviehub.ui.screens.home.HomeScreen
 import com.demo.moviehub.ui.theme.MovieHubTheme
+import com.demo.moviehub.ui.theme.YellowRating
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,7 +43,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MovieHubTheme {
-                MainScreen()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    MainScreen()
+                }
             }
         }
     }
@@ -37,12 +57,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
-
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: ""
+    
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController, currentRoute)
+            if (currentRoute in listOf(Screen.Home.route, Screen.Favorites.route, Screen.Settings.route)) {
+                BottomNavigationBar(navController, currentRoute)
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -50,45 +71,70 @@ fun MainScreen() {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) { HomeScreen() }
-            composable(Screen.Favorites.route) { FavoritesScreen() }
-            composable(Screen.Settings.route) { SettingsScreen() }
+            composable(Screen.Home.route) { 
+                HomeScreen(
+                    onMovieClick = { movieId ->
+                        // Navigate to movie details
+                    },
+                ) 
+            }
+            composable(Screen.Favorites.route) { 
+                FavoritesScreen() 
+            }
+            composable(Screen.Settings.route) { 
+                SettingsScreen() 
+            }
         }
     }
 }
 
 @Composable
 private fun BottomNavigationBar(navController: NavHostController, currentRoute: String) {
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp
+    ) {
         val items = listOf(
             Screen.Home,
             Screen.Favorites,
             Screen.Settings
         )
-
+        
         items.forEach { screen ->
+            val selected = currentRoute == screen.route
             NavigationBarItem(
-                icon = {
+                icon = { 
                     Icon(
-                        imageVector = when (screen) {
-                            is Screen.Home -> Icons.Default.Home
-                            is Screen.Favorites -> Icons.Default.Favorite
-                            is Screen.Settings -> Icons.Default.Settings
-                        },
-                        contentDescription = stringResource(id = screen.titleResId)
-                    )
+                        imageVector = screen.icon, 
+                        contentDescription = screen.title,
+                        modifier = Modifier.size(24.dp)
+                    ) 
                 },
-                label = { Text(stringResource(id = screen.titleResId)) },
-                selected = currentRoute == screen.route,
+                label = { 
+                    Text(
+                        text = screen.title,
+                        style = MaterialTheme.typography.labelSmall
+                    ) 
+                },
+                selected = selected,
                 onClick = {
                     navController.navigate(screen.route) {
-                        popUpTo(navController.graph.startDestinationId) {
+                        popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = YellowRating,
+                    selectedTextColor = YellowRating,
+                    indicatorColor = YellowRating.copy(alpha = 0.2f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                    disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
             )
         }
     }
@@ -101,7 +147,7 @@ fun FavoritesScreen() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(id = R.string.favorites),
+            text = Screen.Favorites.title,
             style = MaterialTheme.typography.titleLarge
         )
     }
@@ -114,14 +160,32 @@ fun SettingsScreen() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(id = R.string.settings),
+            text = Screen.Settings.title,
             style = MaterialTheme.typography.titleLarge
         )
     }
 }
 
-sealed class Screen(val route: String, val titleResId: Int) {
-    object Home : Screen("home", R.string.home)
-    object Favorites : Screen("favorites", R.string.favorites)
-    object Settings : Screen("settings", R.string.settings)
+sealed class Screen(
+    val route: String,
+    val title: String,
+    val icon: ImageVector
+) {
+    object Home : Screen(
+        route = "home",
+        title = "Home",
+        icon = Icons.Default.Home
+    )
+    
+    object Favorites : Screen(
+        route = "favorites",
+        title = "Favorites",
+        icon = Icons.Default.Favorite
+    )
+    
+    object Settings : Screen(
+        route = "settings",
+        title = "Settings",
+        icon = Icons.Default.Settings
+    )
 }

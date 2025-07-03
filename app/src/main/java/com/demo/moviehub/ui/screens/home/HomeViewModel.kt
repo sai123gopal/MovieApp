@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class HomeUiState(
+    val trendingMovies: List<Movie> = emptyList(),
+    val popularMovies: List<Movie> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: MovieRepository
@@ -25,11 +32,15 @@ class HomeViewModel @Inject constructor(
         loadPopularMovies()
     }
 
-    fun loadTrendingMovies(page: Int = 1) {
+
+    fun loadTrendingMovies(
+        timeWindow: String = "day",
+        page: Int = 1
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            repository.getTrendingMovies(page = page).onSuccess { response ->
+            repository.getTrendingMovies(timeWindow, page).onSuccess { response ->
                 _uiState.update { state ->
                     state.copy(
                         trendingMovies = response.results,
@@ -41,7 +52,7 @@ class HomeViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        error = exception.message ?: "Unknown error"
+                        error = exception.message ?: "Failed to load trending movies"
                     )
                 }
             }
@@ -52,7 +63,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            repository.getPopularMovies(page = page).onSuccess { response ->
+            repository.getPopularMovies(page).onSuccess { response ->
                 _uiState.update { state ->
                     state.copy(
                         popularMovies = response.results,
@@ -64,17 +75,10 @@ class HomeViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        error = exception.message ?: "Unknown error"
+                        error = exception.message ?: "Failed to load popular movies"
                     )
                 }
             }
         }
     }
 }
-
-data class HomeUiState(
-    val trendingMovies: List<Movie> = emptyList(),
-    val popularMovies: List<Movie> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
