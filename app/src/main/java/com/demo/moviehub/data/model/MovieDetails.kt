@@ -18,7 +18,9 @@ data class MovieDetails(
     val voteCount: Int,
     val runtime: Int?,
     val genres: List<Genre>,
-    val credits: Credits?
+    val credits: Credits?,
+    @SerializedName("popularity")
+    val popularity: Double?
 )
 
 data class Genre(

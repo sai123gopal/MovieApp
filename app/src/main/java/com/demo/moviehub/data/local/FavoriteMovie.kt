@@ -15,7 +15,7 @@ data class FavoriteMovie(
     val releaseDate: String,
     val voteAverage: Double,
     val voteCount: Int,
-    val popularity: Double
+    val popularity: Double?
 ) {
     companion object {
         fun fromMovie(movie: Movie): FavoriteMovie {

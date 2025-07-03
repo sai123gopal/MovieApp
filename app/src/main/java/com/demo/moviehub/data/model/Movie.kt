@@ -28,5 +28,5 @@ data class Movie(
     val voteCount: Int,
     
     @SerializedName("popularity")
-    val popularity: Double
+    val popularity: Double?
 )
