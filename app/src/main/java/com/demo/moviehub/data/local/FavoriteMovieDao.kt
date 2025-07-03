@@ -23,4 +23,7 @@ interface FavoriteMovieDao {
     
     @Query("SELECT COUNT(*) FROM favorite_movies WHERE id = :movieId")
     suspend fun isMovieFavorite(movieId: Int): Int
+    
+    @Query("DELETE FROM favorite_movies WHERE id = :movieId")
+    suspend fun deleteMovieById(movieId: Int)
 }

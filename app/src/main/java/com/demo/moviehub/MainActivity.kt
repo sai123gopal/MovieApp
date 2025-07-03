@@ -31,6 +31,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.demo.moviehub.ui.screens.favorites.FavoritesScreen
 import com.demo.moviehub.ui.screens.home.HomeScreen
 import com.demo.moviehub.ui.theme.MovieHubTheme
 import com.demo.moviehub.ui.theme.YellowRating
@@ -74,12 +75,16 @@ fun MainScreen() {
             composable(Screen.Home.route) { 
                 HomeScreen(
                     onMovieClick = { movieId ->
-
-                    },
+                        // Handle movie click, e.g., navigate to movie details
+                    }
                 ) 
             }
             composable(Screen.Favorites.route) { 
-                FavoritesScreen() 
+                FavoritesScreen(
+                    onMovieClick = { movieId ->
+                        // Handle movie click, e.g., navigate to movie details
+                    }
+                ) 
             }
             composable(Screen.Settings.route) { 
                 SettingsScreen() 
@@ -141,7 +146,7 @@ private fun BottomNavigationBar(navController: NavHostController, currentRoute: 
 }
 
 @Composable
-fun FavoritesScreen() {
+fun FavoritesScreen(onMovieClick: (Int) -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -188,4 +193,8 @@ sealed class Screen(
         title = "Settings",
         icon = Icons.Default.Settings
     )
+    
+    companion object {
+        val items = listOf(Home, Favorites, Settings)
+    }
 }

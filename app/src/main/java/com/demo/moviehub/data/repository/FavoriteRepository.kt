@@ -7,25 +7,38 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface BaseFavoriteRepository {
+    val allFavoriteMovies: Flow<List<FavoriteMovie>>
+    suspend fun addToFavorites(movie: Movie)
+    suspend fun removeFromFavorites(movie: Movie)
+    suspend fun removeFromFavorites(movieId: Int)
+    suspend fun isFavorite(movieId: Int): Boolean
+    fun getFavoriteMovies(): Flow<List<FavoriteMovie>>
+}
+
 @Singleton
 class FavoriteRepository @Inject constructor(
     private val favoriteMovieDao: FavoriteMovieDao
-) {
-    val allFavoriteMovies: Flow<List<FavoriteMovie>> = favoriteMovieDao.getAllFavoriteMovies()
+) : BaseFavoriteRepository {
+    override val allFavoriteMovies: Flow<List<FavoriteMovie>> = favoriteMovieDao.getAllFavoriteMovies()
     
-    suspend fun addToFavorites(movie: Movie) {
+    override suspend fun addToFavorites(movie: Movie) {
         favoriteMovieDao.insertMovie(FavoriteMovie.fromMovie(movie))
     }
     
-    suspend fun removeFromFavorites(movie: Movie) {
+    override suspend fun removeFromFavorites(movie: Movie) {
         favoriteMovieDao.deleteMovie(FavoriteMovie.fromMovie(movie))
     }
     
-    suspend fun isFavorite(movieId: Int): Boolean {
+    override suspend fun removeFromFavorites(movieId: Int) {
+        favoriteMovieDao.deleteMovieById(movieId)
+    }
+    
+    override suspend fun isFavorite(movieId: Int): Boolean {
         return favoriteMovieDao.isMovieFavorite(movieId) > 0
     }
     
-    fun getFavoriteMovies(): Flow<List<FavoriteMovie>> {
+    override fun getFavoriteMovies(): Flow<List<FavoriteMovie>> {
         return favoriteMovieDao.getAllFavoriteMovies()
     }
 }
