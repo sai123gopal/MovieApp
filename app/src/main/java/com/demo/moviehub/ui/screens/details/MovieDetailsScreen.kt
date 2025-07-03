@@ -2,8 +2,10 @@ package com.demo.moviehub.ui.screens.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.demo.moviehub.ui.components.CastItem
 import com.demo.moviehub.ui.theme.YellowRating
 import com.demo.moviehub.util.ImageUrlBuilder
 import com.demo.moviehub.util.Result
@@ -218,16 +223,21 @@ fun MovieDetailsScreen(
                                     Text(
                                         text = "Cast",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(vertical = 8.dp)
                                     )
                                     
-                                    // TODO: Add horizontal scrollable cast list
-                                    Text(
-                                        text = "Cast list will be displayed here",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    // Horizontal scrollable cast list
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
+                                    ) {
+                                        items(movie.credits!!.cast.take(10)) { castMember ->
+                                            CastItem(
+                                                cast = castMember,
+                                                modifier = Modifier.padding(horizontal = 4.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

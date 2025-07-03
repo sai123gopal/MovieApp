@@ -3,7 +3,7 @@ package com.demo.moviehub.util
 import com.demo.moviehub.data.model.Movie
 
 object ImageUrlBuilder {
-    private const val BASE_IMAGE_URL = "https://image.tmdb.org/t/p/"
+    const val BASE_IMAGE_URL = "https://image.tmdb.org/t/p/"
 
     const val IMAGE_SIZE_W500 = "w500"
     const val IMAGE_SIZE_ORIGINAL = "original"
