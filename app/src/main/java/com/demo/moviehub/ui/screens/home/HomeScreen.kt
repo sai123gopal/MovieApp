@@ -45,13 +45,40 @@ fun HomeScreen(
     onMovieClick: (Int) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    // 0: Today, 1: This Week, 2: This Month
     var selectedFilter by remember { mutableStateOf(0) }
-    val timeWindows = listOf("day", "week")
     val uiState by viewModel.uiState.collectAsState()
     
+    // Get current date and date from 30 days ago
+    val currentDate = remember { java.time.LocalDate.now().toString() }
+    val thirtyDaysAgo = remember { java.time.LocalDate.now().minusDays(30).toString() }
+    val weekAgo = remember { java.time.LocalDate.now().minusWeeks(1).toString() }
+    
+    // Load data when filter changes
     LaunchedEffect(selectedFilter) {
-        viewModel.loadTrendingMovies(timeWindow = timeWindows[selectedFilter])
-        viewModel.loadPopularMovies()
+        when (selectedFilter) {
+            0 -> { // Today
+                viewModel.loadTrendingMovies(timeWindow = "day")
+                viewModel.loadPopularMovies(
+                    fromDate = currentDate,
+                    toDate = currentDate
+                )
+            }
+            1 -> { // This Week
+                viewModel.loadTrendingMovies(timeWindow = "week")
+                viewModel.loadPopularMovies(
+                    fromDate = weekAgo,
+                    toDate = currentDate
+                )
+            }
+            2 -> { // This Month
+                viewModel.loadTrendingMovies(timeWindow = "day") // Keep as day to get latest
+                viewModel.loadPopularMovies(
+                    fromDate = thirtyDaysAgo,
+                    toDate = currentDate
+                )
+            }
+        }
     }
     
     Column(
@@ -78,19 +105,12 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Trending Section
-            Text(
-                text = "Trending",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            
             // Filter Chips
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
                 FilterChip(
                     selected = selectedFilter == 0,
@@ -105,7 +125,17 @@ fun HomeScreen(
                 FilterChip(
                     selected = selectedFilter == 1,
                     onClick = { selectedFilter = 1 },
-                    label = { Text("This week") },
+                    label = { Text("This Week") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = YellowRating.copy(alpha = 0.2f),
+                        selectedLabelColor = YellowRating
+                    )
+                )
+                
+                FilterChip(
+                    selected = selectedFilter == 2,
+                    onClick = { selectedFilter = 2 },
+                    label = { Text("This Month") },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = YellowRating.copy(alpha = 0.2f),
                         selectedLabelColor = YellowRating
@@ -154,6 +184,15 @@ fun HomeScreen(
                     }
                 }
             }
+            
+            // Trending Section
+            Text(
+                text = "Trending",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
             
             // Popular Movies Section
             Text(

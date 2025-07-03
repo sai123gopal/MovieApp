@@ -74,7 +74,7 @@ fun MainScreen() {
             composable(Screen.Home.route) { 
                 HomeScreen(
                     onMovieClick = { movieId ->
-                        // Navigate to movie details
+
                     },
                 ) 
             }

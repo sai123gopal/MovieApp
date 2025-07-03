@@ -8,11 +8,14 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface TmdbApiService {
-    @GET("movie/popular")
+    @GET("discover/movie")
     suspend fun getPopularMovies(
         @Query("api_key") apiKey: String = API_KEY,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US"
+        @Query("language") language: String = "en-US",
+        @Query("sort_by") sortBy: String = "popularity.desc",
+        @Query("primary_release_date.gte") fromDate: String? = null,
+        @Query("primary_release_date.lte") toDate: String? = null
     ): Response<MovieResponse>
     
     @GET("trending/movie/{time_window}")

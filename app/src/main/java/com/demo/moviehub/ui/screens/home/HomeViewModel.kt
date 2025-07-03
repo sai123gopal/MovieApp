@@ -59,11 +59,19 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun loadPopularMovies(page: Int = 1) {
+    fun loadPopularMovies(
+        page: Int = 1,
+        fromDate: String? = null,
+        toDate: String? = null
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            repository.getPopularMovies(page).onSuccess { response ->
+            repository.getPopularMovies(
+                page = page,
+                fromDate = fromDate,
+                toDate = toDate
+            ).onSuccess { response ->
                 _uiState.update { state ->
                     state.copy(
                         popularMovies = response.results,
