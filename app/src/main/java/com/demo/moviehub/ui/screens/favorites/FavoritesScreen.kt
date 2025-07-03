@@ -98,7 +98,7 @@ fun FavoritesScreen(
                 Spacer(Modifier.height(36.dp))
                 Column {
                     Text(
-                        text = "Trending",
+                        text = "Favorites",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),

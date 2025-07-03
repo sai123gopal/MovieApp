@@ -1,8 +1,10 @@
 package com.demo.moviehub.data.repository
 
+import com.demo.moviehub.data.model.MovieDetails
 import com.demo.moviehub.data.model.MovieResponse
 import com.demo.moviehub.data.network.TmdbApiService
-import com.demo.moviehub.util.Constants.API_KEY
+import com.demo.moviehub.util.Result
+import java.io.IOException
 import javax.inject.Inject
 
 interface MovieRepository {
@@ -16,6 +18,8 @@ interface MovieRepository {
         timeWindow: String = "day", 
         page: Int = 1
     ): Result<MovieResponse>
+    
+    suspend fun getMovieDetails(movieId: Int): Result<MovieDetails>
 }
 
 class MovieRepositoryImpl @Inject constructor(
@@ -34,12 +38,12 @@ class MovieRepositoryImpl @Inject constructor(
                 toDate = toDate
             )
             if (response.isSuccessful) {
-                response.body()?.let { Result.success(it) } ?: Result.failure(Exception("Empty response"))
+                response.body()?.let { Result.Success(it) } ?: Result.Error(Exception("Empty response"))
             } else {
-                Result.failure(Exception(response.message()))
+                Result.Error(Exception(response.message()))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.Error(e)
         }
     }
 
@@ -53,13 +57,27 @@ class MovieRepositoryImpl @Inject constructor(
                 page = page
             )
             if (response.isSuccessful) {
-                response.body()?.let { Result.success(it) } 
-                    ?: Result.failure(Exception("Empty response"))
+                response.body()?.let { Result.Success(it) }
+                    ?: Result.Error(Exception("Empty response"))
             } else {
-                Result.failure(Exception(response.message()))
+                Result.Error(Exception(response.message()))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun getMovieDetails(movieId: Int): Result<MovieDetails> {
+        return try {
+            val response = apiService.getMovieDetails(movieId = movieId)
+            if (response.isSuccessful) {
+                response.body()?.let { Result.Success(it) } 
+                    ?: Result.Error(IOException("Empty response"))
+            } else {
+                Result.Error(IOException(response.message()))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
         }
     }
 }

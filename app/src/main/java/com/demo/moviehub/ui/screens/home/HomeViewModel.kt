@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.demo.moviehub.data.model.Movie
 import com.demo.moviehub.data.repository.FavoriteRepository
 import com.demo.moviehub.data.repository.MovieRepository
+import com.demo.moviehub.util.onError
+import com.demo.moviehub.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -66,7 +68,7 @@ class HomeViewModel @Inject constructor(
                         error = null
                     )
                 }
-            }.onFailure { exception ->
+            }.onError { exception ->
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
@@ -97,7 +99,7 @@ class HomeViewModel @Inject constructor(
                         error = null
                     )
                 }
-            }.onFailure { exception ->
+            }.onError { exception ->
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,

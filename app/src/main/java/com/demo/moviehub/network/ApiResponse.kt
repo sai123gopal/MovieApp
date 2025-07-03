@@ -1,6 +1,5 @@
 package com.demo.moviehub.network
 
-import com.google.gson.annotations.SerializedName
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -86,62 +85,4 @@ sealed class ApiResponse<out T> {
 }
 
 
-
-data class ApiError(
-    @SerializedName("status_code") val statusCode: Int? = null,
-    @SerializedName("status_message") val statusMessage: String? = null,
-    @SerializedName("success") val success: Boolean = false,
-    val throwable: Throwable? = null
-) {
-    constructor(throwable: Throwable) : this(
-        statusCode = 0,
-        statusMessage = throwable.message,
-        success = false,
-        throwable = throwable
-    )
-    
-    companion object {
-        fun fromThrowable(throwable: Throwable): ApiError {
-            return when (throwable) {
-                is HttpException -> {
-                    val errorBody = try {
-                        throwable.response()?.errorBody()?.string()
-                    } catch (e: Exception) {
-                        null
-                    }
-                    ApiError(
-                        statusCode = throwable.code(),
-                        statusMessage = throwable.message(),
-                        success = false,
-                        throwable = throwable
-                    )
-                }
-                is SocketTimeoutException -> {
-                    ApiError(
-                        statusMessage = "Connection timeout. Please check your internet connection and try again.",
-                        throwable = throwable
-                    )
-                }
-                is UnknownHostException -> {
-                    ApiError(
-                        statusMessage = "No internet connection. Please check your network settings and try again.",
-                        throwable = throwable
-                    )
-                }
-                is IOException -> {
-                    ApiError(
-                        statusMessage = "Network error occurred. Please try again later.",
-                        throwable = throwable
-                    )
-                }
-                else -> {
-                    ApiError(
-                        statusMessage = throwable.message ?: "An unknown error occurred",
-                        throwable = throwable
-                    )
-                }
-            }
-        }
-    }
-}
 

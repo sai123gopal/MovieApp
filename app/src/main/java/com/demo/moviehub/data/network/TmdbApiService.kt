@@ -1,5 +1,6 @@
 package com.demo.moviehub.data.network
 
+import com.demo.moviehub.data.model.MovieDetails
 import com.demo.moviehub.data.model.MovieResponse
 import com.demo.moviehub.util.Constants.API_KEY
 import retrofit2.Response
@@ -25,4 +26,12 @@ interface TmdbApiService {
         @Query("page") page: Int = 1,
         @Query("language") language: String = "en-US"
     ): Response<MovieResponse>
+    
+    @GET("movie/{movie_id}")
+    suspend fun getMovieDetails(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = API_KEY,
+        @Query("language") language: String = "en-US",
+        @Query("append_to_response") appendToResponse: String = "credits"
+    ): Response<MovieDetails>
 }
