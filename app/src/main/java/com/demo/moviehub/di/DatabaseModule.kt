@@ -1,6 +1,8 @@
 package com.demo.moviehub.di
 
 import android.content.Context
+import com.demo.moviehub.data.cache.MovieDatabase as CacheDatabase
+import com.demo.moviehub.data.cache.dao.CachedMovieDao
 import com.demo.moviehub.data.local.MovieDatabase
 import com.demo.moviehub.data.local.FavoriteMovieDao
 import com.demo.moviehub.data.repository.FavoriteRepository
@@ -15,6 +17,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
     
+    // Favorite Movies Database
     @Provides
     @Singleton
     fun provideDatabase(
@@ -30,5 +33,17 @@ object DatabaseModule {
     @Singleton
     fun provideFavoriteRepository(favoriteMovieDao: FavoriteMovieDao): FavoriteRepository {
         return FavoriteRepository(favoriteMovieDao)
+    }
+    
+    // Movie Cache Database
+    @Provides
+    @Singleton
+    fun provideCacheDatabase(
+        @ApplicationContext context: Context
+    ): CacheDatabase = CacheDatabase.getInstance(context)
+    
+    @Provides
+    fun provideCachedMovieDao(database: CacheDatabase): CachedMovieDao {
+        return database.cachedMovieDao()
     }
 }

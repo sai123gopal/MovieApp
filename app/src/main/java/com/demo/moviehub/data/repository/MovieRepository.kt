@@ -1,9 +1,13 @@
 package com.demo.moviehub.data.repository
 
+import com.demo.moviehub.data.cache.MovieCache
 import com.demo.moviehub.data.model.MovieDetails
 import com.demo.moviehub.data.model.MovieResponse
 import com.demo.moviehub.data.network.TmdbApiService
 import com.demo.moviehub.util.Result
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import java.io.IOException
 import javax.inject.Inject
 
@@ -12,58 +16,104 @@ interface MovieRepository {
         page: Int = 1,
         fromDate: String? = null,
         toDate: String? = null
-    ): Result<MovieResponse>
+    ): Flow<Result<MovieResponse>>
     
     suspend fun getTrendingMovies(
         timeWindow: String = "day", 
         page: Int = 1
-    ): Result<MovieResponse>
+    ): Flow<Result<MovieResponse>>
     
     suspend fun getMovieDetails(movieId: Int): Result<MovieDetails>
 }
 
 class MovieRepositoryImpl @Inject constructor(
-    private val apiService: TmdbApiService
+    private val apiService: TmdbApiService,
+    private val movieCache: MovieCache
 ) : MovieRepository {
     
     override suspend fun getPopularMovies(
         page: Int,
         fromDate: String?,
         toDate: String?
-    ): Result<MovieResponse> {
-        return try {
-            val response = apiService.getPopularMovies(
-                page = page,
-                fromDate = fromDate,
-                toDate = toDate
-            )
-            if (response.isSuccessful) {
-                response.body()?.let { Result.Success(it) } ?: Result.Error(Exception("Empty response"))
-            } else {
-                Result.Error(Exception(response.message()))
+    ): Flow<Result<MovieResponse>> = flow {
+
+        if (fromDate != null && toDate != null) {
+
+            val cachedMovies = movieCache.getPopularMovies(fromDate, toDate)
+                .firstOrNull()
+
+            try {
+                cachedMovies?.let { movies ->
+                    emit(Result.Success(MovieResponse(
+                        page = 1,
+                        results = movies,
+                        totalPages = 1,
+                        totalResults = movies.size
+                    )))
+                }
+            } catch (_: Exception) { }
+
+            try {
+                val response = apiService.getPopularMovies(
+                    page = page,
+                    fromDate = fromDate,
+                    toDate = toDate
+                )
+
+                if (response.isSuccessful) {
+                    response.body()?.let { movieResponse ->
+                        movieCache.cachePopularMovies(fromDate, toDate, movieResponse.results)
+                        emit(Result.Success(movieResponse))
+                    } ?: emit(Result.Error(Exception("Empty response")))
+                } else {
+                    emit(Result.Error(Exception(response.message())))
+                }
+            } catch (e: Exception) {
+                if (cachedMovies == null) {
+                    emit(Result.Error(e))
+                }
+
             }
-        } catch (e: Exception) {
-            Result.Error(e)
         }
+
+
     }
 
     override suspend fun getTrendingMovies(
         timeWindow: String,
         page: Int
-    ): Result<MovieResponse> {
-        return try {
+    ): Flow<Result<MovieResponse>> = flow {
+        val cachedMovies = movieCache.getTrendingMovies(timeWindow)
+            .firstOrNull()
+        try {
+            cachedMovies?.let { movies ->
+                emit(Result.Success(MovieResponse(
+                    page = 1,
+                    results = movies,
+                    totalPages = 1,
+                    totalResults = movies.size
+                )))
+            }
+        } catch (_: Exception) { }
+
+        try {
             val response = apiService.getTrendingMovies(
                 timeWindow = timeWindow,
                 page = page
             )
+            
             if (response.isSuccessful) {
-                response.body()?.let { Result.Success(it) }
-                    ?: Result.Error(Exception("Empty response"))
+                response.body()?.let { movieResponse ->
+                    movieCache.cacheTrendingMovies(timeWindow, movieResponse.results)
+                    emit(Result.Success(movieResponse))
+                } ?: emit(Result.Error(Exception("Empty response")))
             } else {
-                Result.Error(Exception(response.message()))
+                emit(Result.Error(Exception(response.message())))
             }
         } catch (e: Exception) {
-            Result.Error(e)
+            if (cachedMovies  == null) {
+                emit(Result.Error(e))
+            }
         }
     }
 

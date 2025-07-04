@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.demo.moviehub.data.model.Movie
 import com.demo.moviehub.data.repository.FavoriteRepository
 import com.demo.moviehub.data.repository.MovieRepository
+import com.demo.moviehub.util.Result
 import com.demo.moviehub.util.onError
 import com.demo.moviehub.util.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -60,20 +61,28 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            repository.getTrendingMovies(timeWindow, page).onSuccess { response ->
-                _uiState.update { state ->
-                    state.copy(
-                        trendingMovies = response.results,
-                        isLoading = false,
-                        error = null
-                    )
-                }
-            }.onError { exception ->
-                _uiState.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        error = exception.message ?: "Failed to load trending movies"
-                    )
+            repository.getTrendingMovies(timeWindow, page).collect { result ->
+                when (result) {
+                    is Result.Error -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                isLoading = false,
+                                error = result.exception.message ?: "Failed to load trending movies"
+                            )
+                        }
+                    }
+                    Result.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                    is Result.Success -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                trendingMovies = result.data.results,
+                                isLoading = false,
+                                error = null
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -91,20 +100,28 @@ class HomeViewModel @Inject constructor(
                 page = page,
                 fromDate = fromDate,
                 toDate = toDate
-            ).onSuccess { response ->
-                _uiState.update { state ->
-                    state.copy(
-                        popularMovies = response.results,
-                        isLoading = false,
-                        error = null
-                    )
-                }
-            }.onError { exception ->
-                _uiState.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        error = exception.message ?: "Failed to load popular movies"
-                    )
+            ).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                popularMovies = result.data.results,
+                                isLoading = false,
+                                error = null
+                            )
+                        }
+                    }
+                    is Result.Error -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                isLoading = false,
+                                error = result.exception.message ?: "Failed to load popular movies"
+                            )
+                        }
+                    }
+                    is Result.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
                 }
             }
         }
