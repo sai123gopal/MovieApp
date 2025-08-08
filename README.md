@@ -43,7 +43,7 @@ TMDB_API_KEY=your_api_key_here
 
 ## 📱 Screenshots
 
-| **Home Screen** | **Trending Movies** | **Movie Details** |
+| **Home Screen** | **Movie Details** | **Fav** |
 |-----------------|---------------------|-------------------|
 | <img src="https://github.com/user-attachments/assets/634ef1c8-b910-4a14-bf5e-f9363c148d19" width="250" alt="Home Screen"> | <img src="https://github.com/user-attachments/assets/92a588de-a92b-4961-b810-65ee71c973ec" width="250" alt="Trending Movies"> | <img src="https://github.com/user-attachments/assets/aad115ee-3f57-405c-b03b-8442288c8592" width="250" alt="Movie Details"> |
 
